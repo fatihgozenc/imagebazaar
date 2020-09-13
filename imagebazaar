@@ -1,0 +1,115 @@
+#!/bin/bash
+
+# ASSIGNING SITE URL TO VARIABLE
+cat << EOF 
+
+Enter the page url.
+-> E.g: http://example.com
+
+EOF
+read SITEURL
+
+# IF URL HAS / AT THE END, REMOVE IT
+if [[ ${SITEURL: -1} == / ]]
+	then SITEURL=${SITEURL%?}
+fi
+
+# ASSIGNING HTML ATTRIBUTE TO VARIABLE
+cat << EOF
+
+Enter the html attribute name that contains images' source urls.
+Remember, it's written like <img src="http://example.com/img.jpg">
+So 'src' is the html attribute name there.
+-> E.g: src data-src data-url lazyload-url etc.
+
+EOF
+read URLATR
+
+# ASSIGNING IMG FORMAT TO VARIABLE
+cat << EOF
+
+Enter the image format.
+-> E.g: jpg png webp gif etc.
+
+EOF
+read IMGFMT
+
+# SETTING DOMAIN NAME WITHOUT HTTP PREFIX
+DOMAIN=$(grep -oP '(?<=://)[^>]+' <<< $SITEURL)
+
+# SETTING DOMAIN NAME WITHOUT DOTS
+URLSTR=$(echo ${DOMAIN/./-} | sed -e 's/\//-/g')
+
+# SETTING IMAGES FOLDER NAME
+IMGDIR=$(pwd)/$URLSTR-images
+
+# SETTING TXT FILE NAME OF URL LIST
+IMGURLS=$IMGDIR/$URLSTR-imageurls.txt
+
+# CRREATING FOLDER FOR IMAGES
+mkdir $IMGDIR
+
+cat << EOF
+
+-> Parsing data from ${SITEURL}
+EOF
+
+# REQUESTING PAGE VIA CURL
+curl -s -L $SITEURL | \
+	# GETTING IMAGE TAGS WITH GIVEN FORMAT
+	grep -o "<img .*${URLATR}=.*\.${IMGFMT}" | \
+	# ADDING NEW LINE BETWEEN IMG TAGS
+	sed -e 's/<img/\n<img/g' | \
+	# GETTING SOURCE URLS IN GIVEN ATTRIBUTE
+	sed -e 's/<img .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
+
+# DECLARING AN EMPTY ARRAY FOR URLS
+declare -a URLS
+URLS=(`cat $IMGURLS`)
+URLSLENGTH=${#URLS[@]}
+
+cat << EOF
+-> Checking if the URLs are in correct format
+EOF
+
+# CHECKING URLS THAT THEY HAVE FULL DOMAIN NAME WITH HTTP
+for (( i = 0; i < $URLSLENGTH; i++ ))
+do
+	if [[ "${URLS[$i]}" != *"http"* ]]
+	then
+		# IF THE URL DOESNT HAVE HTTP, ADDING HTTP WITH DOMAIN NAME
+		CORRECTEDURL=$SITEURL/${URLS[$i]}
+		echo "-> Image ${i} has wrong url format. Correcting..."
+		sed -i "s,${URLS[$i]},$CORRECTEDURL,i" $IMGURLS
+	fi
+done
+
+cat << EOF
+
+-> ${URLSLENGTH} urls have been checked.
+-> Starting to download from ${SITEURL}
+
+EOF
+
+# READING CORRECTED VALUES AGAIN FROM TXT FILE
+declare -a CORRECTEDURLS
+CORRECTEDURLS=(`cat $IMGURLS`)
+
+# DOWNLOADING IMAGES FROM ARRAY OF CORRECTED URLS
+for ((i = 0; i < $URLSLENGTH; i++))
+do
+	echo Downloaded $(($i+1)) images.
+	curl -s -o "${IMGDIR}/image-$i.jpg" ${CORRECTEDURLS[$i]}
+done
+
+cat << EOF
+
+${URLSLENGTH} images downloaded from ${SITEURL}
+
+You can find the url list of downloaded images in:
+${IMGURLS}
+
+You can find the downloaded images in
+${IMGDIR}
+
+EOF
