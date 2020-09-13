@@ -1,4 +1,4 @@
-# Imagebazaar
+# imagebazaar
 
 ## A simple bash script to download all images in img tags from a web page.
 
@@ -14,7 +14,7 @@ Just download the repo and run `./imagebazaar`. Then you can follow the instruct
 
 ### How it does affect works?
 
-It saves me a lot of time while downloading collection of images and causes me to broaden my imagination faster. If you want to see the outcome of this imagination, you can follow my daily paintings here: [a link](https://instagram.com/fatihgozenc)
+It saves me a lot of time while downloading collection of images and causes me to broaden my imagination faster. If you want to see the outcome of this imagination, you can follow my daily paintings here: [Instagram](https://instagram.com/fatihgozenc)
 
 ### Thanks for interest.
 
