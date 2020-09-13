@@ -1,5 +1,48 @@
 #!/bin/bash
 
+if [ $1 == "--instagram" ] || [ $1 == "-i" ]
+	then 
+
+	echo Enter the Instagram username
+	read USERNAME
+
+	INSTAIMGDIR=$(pwd)/instagram-$USERNAME-images
+	INSTAIMGURLS=$INSTAIMGDIR/instagram-$USERNAME-imageurls.txt
+
+	mkdir $INSTAIMGDIR
+
+	curl -s -L https://instagram.com/${USERNAME} | \
+		grep -oP '(?<="thumbnail_src":")[^"]*' > ${INSTAIMGURLS}
+
+	sed -i 's/\\u0026/\&/g' ${INSTAIMGURLS}
+
+	declare -a INSTAURLSARR
+	INSTAURLSARR=(`cat $INSTAIMGURLS`)
+	INSTAURLSLENGTH=${#INSTAURLSARR[@]}
+
+	for (( i = 0; i < $INSTAURLSLENGTH; i++ ))
+		do
+		echo Downloaded $(($i+1)) images.
+		curl -s -o "${INSTAIMGDIR}/image-$i.jpg" ${INSTAURLSARR[$i]}
+	done
+
+cat << EOF
+
+${INSTAURLSLENGTH} images downloaded from https://instagram.com/${USERNAME}
+
+You can find the url list of downloaded images in:
+${INSTAIMGURLS}
+
+You can find the downloaded images in
+${INSTAIMGDIR}
+
+EOF
+
+
+else
+
+
+echo $1
 # ASSIGNING SITE URL TO VARIABLE
 cat << EOF 
 
@@ -99,7 +142,7 @@ CORRECTEDURLS=(`cat $IMGURLS`)
 for ((i = 0; i < $URLSLENGTH; i++))
 do
 	echo Downloaded $(($i+1)) images.
-	curl -s -o "${IMGDIR}/image-$i.jpg" ${CORRECTEDURLS[$i]}
+	curl -s -o "${IMGDIR}/image-$i.${IMGFMT}" ${CORRECTEDURLS[$i]}
 done
 
 cat << EOF
@@ -113,3 +156,5 @@ You can find the downloaded images in
 ${IMGDIR}
 
 EOF
+
+fi
