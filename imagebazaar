@@ -122,7 +122,7 @@ curl -s -L $SITEURL | \
 		sed -e 's/<img/\'$'\n<img/g' | \
 		sed -e 's/<img .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
 	else
-		sed -e 's/<img/\\n<img/g' | \
+		sed -e 's/<img/\n<img/g' | \
 		sed -e 's/<img .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
 	fi
 # DECLARING AN EMPTY ARRAY FOR URLS
