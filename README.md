@@ -14,7 +14,7 @@ You can pass `-i` or `--instagram` flag to download images from public profiles 
 
 ## Dependencies and Compatibilty
 
-It uses `curl`, `sed`, `grep` and some basic Linux commands to operate correctly. I haven't tested the usability on macOSX and Windows but it is working without any problems on CentOS 8 and Debian at the moment.
+It uses `curl`, `sed`, `grep` and some basic Linux commands to operate correctly. In MacOSX, it uses `perl` instead of `grep` for complex pattern matching and `sed` with an additional .bak file. I haven't tested the usability on Windows but it is working without any problems on MacOSX High Sierra, CentOS 8 and Debian at the moment.
 
 ## Personal Thoughts
 

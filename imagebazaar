@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [ $1 == "--instagram" ] || [ $1 == "-i" ]
+OS=$(uname)
+
+if [[ $1 == "--instagram" ]] || [[ $1 == "-i" ]]
 	then 
 
 	echo Enter the Instagram username
@@ -11,10 +13,16 @@ if [ $1 == "--instagram" ] || [ $1 == "-i" ]
 
 	mkdir $INSTAIMGDIR
 
-	curl -s -L https://instagram.com/${USERNAME} | \
-		grep -oP '(?<="thumbnail_src":")[^"]*' > ${INSTAIMGURLS}
-
-	sed -i 's/\\u0026/\&/g' ${INSTAIMGURLS}
+	if [[ $OS == 'Darwin' ]]
+		then
+		curl -s -L https://instagram.com/${USERNAME} | \
+			perl -nle'print $& while m{(?<="thumbnail_src":")[^"]*}g' > ${INSTAIMGURLS}
+		sed -i '.bak' 's/\\u0026/\&/g' ${INSTAIMGURLS}
+	else
+		curl -s -L https://instagram.com/${USERNAME} | \
+			grep -oP '(?<="thumbnail_src":")[^"]*' > ${INSTAIMGURLS}
+		sed -i 's/\\u0026/\&/g' ${INSTAIMGURLS}
+	fi
 
 	declare -a INSTAURLSARR
 	INSTAURLSARR=(`cat $INSTAIMGURLS`)
@@ -78,7 +86,12 @@ EOF
 read IMGFMT
 
 # SETTING DOMAIN NAME WITHOUT HTTP PREFIX
-DOMAIN=$(grep -oP '(?<=://)[^>]+' <<< $SITEURL)
+if [[ $OS == 'Darwin' ]]
+	then
+	DOMAIN=$(perl -nle'print $& while m{(?<=://)[^>]+}g' <<< $SITEURL)
+else
+	DOMAIN=$(grep -oP '(?<=://)[^>]+' <<< $SITEURL)
+fi
 
 # SETTING DOMAIN NAME WITHOUT DOTS
 URLSTR=$(echo ${DOMAIN/./-} | sed -e 's/\//-/g')
@@ -101,11 +114,17 @@ EOF
 curl -s -L $SITEURL | \
 	# GETTING IMAGE TAGS WITH GIVEN FORMAT
 	grep -o "<img .*${URLATR}=.*\.${IMGFMT}" | \
-	# ADDING NEW LINE BETWEEN IMG TAGS
-	sed -e 's/<img/\n<img/g' | \
-	# GETTING SOURCE URLS IN GIVEN ATTRIBUTE
-	sed -e 's/<img .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
 
+	# ADDING NEW LINE BETWEEN IMG TAGS
+	# GETTING SOURCE URLS IN GIVEN ATTRIBUTE
+	if [[ $OS == 'Darwin' ]]
+		then
+		sed -e 's/<img/\'$'\n<img/g' | \
+		sed -e 's/<img .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
+	else
+		sed -e 's/<img/\\n<img/g' | \
+		sed -e 's/<img .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
+	fi
 # DECLARING AN EMPTY ARRAY FOR URLS
 declare -a URLS
 URLS=(`cat $IMGURLS`)
@@ -123,7 +142,12 @@ do
 		# IF THE URL DOESNT HAVE HTTP, ADDING HTTP WITH DOMAIN NAME
 		CORRECTEDURL=$SITEURL/${URLS[$i]}
 		echo "-> Image ${i} has wrong url format. Correcting..."
-		sed -i "s,${URLS[$i]},$CORRECTEDURL,i" $IMGURLS
+		if [[ $OS == 'Darwin' ]]
+		then
+			sed -i ".bak" "s,${URLS[$i]},$CORRECTEDURL,g" $IMGURLS
+		else
+			sed -i "s,${URLS[$i]},$CORRECTEDURL,i" $IMGURLS
+		fi
 	fi
 done
 
