@@ -65,16 +65,42 @@ if [[ ${SITEURL: -1} == / ]]
 	then SITEURL=${SITEURL%?}
 fi
 
+cat << EOF
+
+Enter HTML tag you want to download, default tag is <img>
+Remember, it's written like <img src="http://example.com/img.jpg">
+-> E.g: It can be <a src="http://example.com/img.jpg"> in markup so type 'a'
+EOF
+read HTMLTAG
+if [[ -z ${HTMLTAG} ]]
+	then HTMLTAG="img"
+fi
+cat << EOF
+
+-> Using <${HTMLTAG}> tag...
+
+EOF
+
 # ASSIGNING HTML ATTRIBUTE TO VARIABLE
 cat << EOF
 
 Enter the html attribute name that contains images' source urls.
-Remember, it's written like <img src="http://example.com/img.jpg">
-So 'src' is the html attribute name there.
+Default attribute is 'src.
+Remember, it can be written like <img data-src="http://example.com/img.jpg">
+So 'data-src' is the html attribute name there.
 -> E.g: src data-src data-url lazyload-url etc.
 
 EOF
 read URLATR
+
+if [[ -z ${URLATR} ]]
+	then URLATR="src"
+fi
+cat << EOF
+
+-> Using ${URLATR} attribute...
+
+EOF
 
 # ASSIGNING IMG FORMAT TO VARIABLE
 cat << EOF
@@ -113,17 +139,17 @@ EOF
 # REQUESTING PAGE VIA CURL
 curl -s -L $SITEURL | \
 	# GETTING IMAGE TAGS WITH GIVEN FORMAT
-	grep -o "<img .*${URLATR}=.*\.${IMGFMT}" | \
+	grep -o "<${HTMLTAG} .*${URLATR}=.*\.${IMGFMT}" | \
 
 	# ADDING NEW LINE BETWEEN IMG TAGS
 	# GETTING SOURCE URLS IN GIVEN ATTRIBUTE
 	if [[ $OS == 'Darwin' ]]
 		then
-		sed -e 's/<img/\'$'\n<img/g' | \
-		sed -e 's/<img .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
+		sed -e 's/<'"${HTMLTAG}"'/\'$'\n<'"${HTMLTAG}"'/g' | \
+		sed -e 's/<'"${HTMLTAG}"' .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
 	else
-		sed -e 's/<img/\n<img/g' | \
-		sed -e 's/<img .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
+		sed -e 's/<'"${HTMLTAG}"'/\n<'"${HTMLTAG}"'/g' | \
+		sed -e 's/<'"${HTMLTAG}"' .*=['"'"'"]//' -e 's/["'"'"'].*$//' -e '/^$/ d' > ${IMGURLS}
 	fi
 # DECLARING AN EMPTY ARRAY FOR URLS
 declare -a URLS
