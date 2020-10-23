@@ -67,7 +67,8 @@ fi
 
 cat << EOF
 
-Enter HTML tag you want to download, default tag is <img>
+Enter HTML tag you want to download.
+Default tag is <img>.
 Remember, it's written like <img src="http://example.com/img.jpg">
 -> E.g: It can be <a src="http://example.com/img.jpg"> in markup so type 'a'
 EOF
@@ -89,7 +90,6 @@ Default attribute is 'src.
 Remember, it can be written like <img data-src="http://example.com/img.jpg">
 So 'data-src' is the html attribute name there.
 -> E.g: src data-src data-url lazyload-url etc.
-
 EOF
 read URLATR
 
@@ -106,11 +106,19 @@ EOF
 cat << EOF
 
 Enter the image format.
--> E.g: jpg png webp gif etc.
+Default format is 'jpg'
+-> E.g: jpeg png webp gif etc.
 
 EOF
 read IMGFMT
+if [[ -z ${IMGFMT} ]]
+	then IMGFMT="jpg"
+fi
+cat << EOF
 
+-> Using ${IMGFMT} format...
+
+EOF
 # SETTING DOMAIN NAME WITHOUT HTTP PREFIX
 if [[ $OS == 'Darwin' ]]
 	then
